@@ -1,0 +1,44 @@
+image: mcr.microsoft.com/dotnet/sdk:8.0
+
+stages:
+  - lint
+  - test
+  - build
+  - publish
+
+variables:
+  NUGET_PACKAGES_DIRECTORY: '.nuget'
+
+cache:
+  paths:
+    - .nuget/
+
+build:
+  stage: build
+  script:
+    - dotnet build src/AIVoryMonitor/AIVoryMonitor.csproj -c Release
+  artifacts:
+    paths:
+      - src/AIVoryMonitor/bin/Release/
+    expire_in: 1 hour
+
+test:
+  stage: test
+  script:
+    - dotnet test
+  allow_failure: true
+  dependencies: []
+
+publish:nuget:
+  stage: publish
+  script:
+    - dotnet pack src/AIVoryMonitor/AIVoryMonitor.csproj -c Release -o ./nupkgs
+    - dotnet nuget push ./nupkgs/*.nupkg --api-key $NUGET_API_KEY --source https://api.nuget.org/v3/index.json
+  artifacts:
+    paths:
+      - "**/*.nupkg"
+    expire_in: 30 days
+  only:
+    - /^v\d+\.\d+\.\d+$/
+  dependencies:
+    - build
