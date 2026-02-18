@@ -41,6 +41,16 @@ public class AgentConfig
     public int MaxVariableDepth { get; set; } = 10;
 
     /// <summary>
+    /// Maximum string length for captured variables.
+    /// </summary>
+    public int MaxStringLength { get; set; } = 1000;
+
+    /// <summary>
+    /// Maximum collection size for captured variables.
+    /// </summary>
+    public int MaxCollectionSize { get; set; } = 100;
+
+    /// <summary>
     /// Enable debug logging.
     /// </summary>
     public bool Debug { get; set; } = false;
