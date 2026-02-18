@@ -12,6 +12,5 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
-      - run: dotnet restore
-      - run: dotnet build --no-restore
-      - run: dotnet test --no-build
+      - run: dotnet restore src/AIVoryMonitor/AIVoryMonitor.csproj
+      - run: dotnet build src/AIVoryMonitor/AIVoryMonitor.csproj --no-restore

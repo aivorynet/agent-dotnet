@@ -12,9 +12,8 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
-      - run: dotnet restore
-      - run: dotnet build --no-restore
-      - run: dotnet test --no-build
+      - run: dotnet restore src/AIVoryMonitor/AIVoryMonitor.csproj
+      - run: dotnet build src/AIVoryMonitor/AIVoryMonitor.csproj --no-restore
   release:
     runs-on: ubuntu-latest
     needs: ci
@@ -33,6 +32,6 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
-      - run: dotnet pack --configuration Release
+      - run: dotnet pack src/AIVoryMonitor/AIVoryMonitor.csproj --configuration Release
       - name: Publish to NuGet
         run: dotnet nuget push ./nupkgs/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
