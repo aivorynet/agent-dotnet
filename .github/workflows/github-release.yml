@@ -32,6 +32,6 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
-      - run: dotnet pack src/AIVoryMonitor/AIVoryMonitor.csproj --configuration Release
+      - run: dotnet pack src/AIVoryMonitor/AIVoryMonitor.csproj --configuration Release -o ./nupkgs
       - name: Publish to NuGet
         run: dotnet nuget push ./nupkgs/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
