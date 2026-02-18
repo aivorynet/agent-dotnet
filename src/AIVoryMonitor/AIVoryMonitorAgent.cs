@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using AIVory.Monitor.Breakpoint;
 using AIVory.Monitor.Capture;
 using AIVory.Monitor.Transport;
 using Microsoft.Extensions.Logging;
@@ -18,6 +20,7 @@ public class AIVoryMonitorAgent : IDisposable
     private readonly AgentConfig _config;
     private readonly BackendConnection _connection;
     private readonly ExceptionCapture _exceptionCapture;
+    private readonly BreakpointManager? _breakpointManager;
     private readonly ILogger? _logger;
 
     private bool _started = false;
@@ -39,6 +42,11 @@ public class AIVoryMonitorAgent : IDisposable
         _logger = logger;
         _connection = new BackendConnection(_config, logger);
         _exceptionCapture = new ExceptionCapture(_config, _connection);
+
+        if (_config.EnableBreakpoints)
+        {
+            _breakpointManager = new BreakpointManager(_config, _connection);
+        }
     }
 
     /// <summary>
@@ -71,6 +79,13 @@ public class AIVoryMonitorAgent : IDisposable
 
         // Install exception handlers
         _exceptionCapture.Install();
+
+        // Wire up breakpoint events
+        if (_breakpointManager != null)
+        {
+            _connection.OnBreakpointSet += json => _breakpointManager.HandleSetBreakpoint(json);
+            _connection.OnBreakpointRemove += id => _breakpointManager.RemoveBreakpoint(id);
+        }
 
         // Register shutdown handler
         AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
@@ -117,6 +132,16 @@ public class AIVoryMonitorAgent : IDisposable
     {
         CaptureException(exception, context);
         return exception;
+    }
+
+    /// <summary>
+    /// Triggers a non-breaking breakpoint capture.
+    /// Only captures if the breakpoint ID has been registered by the backend.
+    /// Place this call at locations where you want to capture context.
+    /// </summary>
+    public static void Breakpoint(string id)
+    {
+        _instance?._breakpointManager?.Hit(id);
     }
 
     private void OnProcessExit(object? sender, EventArgs e)

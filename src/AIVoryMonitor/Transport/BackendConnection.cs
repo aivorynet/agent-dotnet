@@ -133,6 +133,21 @@ public class BackendConnection : IDisposable
         QueueMessage(message);
     }
 
+    /// <summary>
+    /// Sends a breakpoint hit to the backend.
+    /// </summary>
+    public void SendBreakpointHit(string breakpointId, object payload)
+    {
+        var message = new
+        {
+            type = "breakpoint_hit",
+            payload,
+            timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+        };
+
+        QueueMessage(message);
+    }
+
     private async Task RegisterAsync()
     {
         var message = new
