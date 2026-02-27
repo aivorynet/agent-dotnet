@@ -15,9 +15,9 @@ public class AgentConfig
 
     /// <summary>
     /// WebSocket URL for the backend server.
-    /// Default: wss://api.aivory.net/ws/monitor/agent
+    /// Default: wss://api.aivory.net/monitor/agent
     /// </summary>
-    public string BackendUrl { get; set; } = "wss://api.aivory.net/ws/monitor/agent";
+    public string BackendUrl { get; set; } = "wss://api.aivory.net/monitor/agent";
 
     /// <summary>
     /// Environment name (production, staging, development).
@@ -78,7 +78,7 @@ public class AgentConfig
         var config = new AgentConfig
         {
             ApiKey = GetEnvOrDefault("AIVORY_API_KEY", string.Empty),
-            BackendUrl = GetEnvOrDefault("AIVORY_BACKEND_URL", "wss://api.aivory.net/ws/monitor/agent"),
+            BackendUrl = GetEnvOrDefault("AIVORY_BACKEND_URL", "wss://api.aivory.net/monitor/agent"),
             Environment = GetEnvOrDefault("AIVORY_ENVIRONMENT", "production"),
             ApplicationName = System.Environment.GetEnvironmentVariable("AIVORY_APP_NAME"),
             SamplingRate = double.TryParse(System.Environment.GetEnvironmentVariable("AIVORY_SAMPLING_RATE"), out var rate) ? rate : 1.0,

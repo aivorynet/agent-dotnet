@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
     <PackageId>AIVory.Monitor</PackageId>
-    <Version>0.1.0</Version>
+    <Version>0.1.1</Version>
     <Authors>AIVory</Authors>
     <Company>AIVory</Company>
     <Description>AIVory Monitor - Runtime exception monitoring agent for .NET applications</Description>
