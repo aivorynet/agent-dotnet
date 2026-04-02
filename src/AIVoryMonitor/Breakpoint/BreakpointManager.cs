@@ -132,6 +132,7 @@ public class BreakpointManager
         var payload = new
         {
             breakpoint_id = bp.Id,
+            agent_id = _connection.AgentId,
             captured_at = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
             file_path = bp.FilePath,
             line_number = bp.LineNumber,

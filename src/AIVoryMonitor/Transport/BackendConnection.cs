@@ -28,6 +28,7 @@ public class BackendConnection : IDisposable
     private int _reconnectAttempts = 0;
     private bool _isConnected = false;
     private bool _isDisposed = false;
+    private bool _authFailed = false;
     private string? _agentId;
 
     public event Action<JsonElement>? OnMessage;
@@ -105,13 +106,30 @@ public class BackendConnection : IDisposable
 
     /// <summary>
     /// Sends an exception to the backend.
+    /// Merges agent_id and environment into the payload alongside the ExceptionData fields.
     /// </summary>
     public void SendException(ExceptionData exception)
     {
         var message = new
         {
             type = "exception",
-            payload = exception,
+            payload = new
+            {
+                exception.ExceptionType,
+                exception.Message,
+                exception.FilePath,
+                exception.LineNumber,
+                exception.MethodName,
+                exception.ClassName,
+                exception.Severity,
+                exception.Runtime,
+                exception.RuntimeVersion,
+                exception.StackTrace,
+                exception.LocalVariables,
+                exception.RequestContext,
+                agent_id = _agentId,
+                environment = _config.Environment
+            },
             timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
         };
 
@@ -325,10 +343,24 @@ public class BackendConnection : IDisposable
                     break;
 
                 case "error":
-                    if (root.TryGetProperty("payload", out var errPayload) &&
-                        errPayload.TryGetProperty("message", out var errMsg))
+                    if (root.TryGetProperty("payload", out var errPayload))
                     {
-                        Log($"Backend error: {errMsg.GetString()}", LogLevel.Error);
+                        if (errPayload.TryGetProperty("message", out var errMsg))
+                        {
+                            Log($"Backend error: {errMsg.GetString()}", LogLevel.Error);
+                        }
+
+                        // Check for authentication errors - stop reconnecting
+                        if (errPayload.TryGetProperty("code", out var errCode))
+                        {
+                            var code = errCode.GetString();
+                            if (code == "auth_error" || code == "invalid_api_key")
+                            {
+                                Log("Authentication failed - stopping reconnection", LogLevel.Error);
+                                _authFailed = true;
+                                _ = DisconnectAsync();
+                            }
+                        }
                     }
                     break;
             }
@@ -343,7 +375,13 @@ public class BackendConnection : IDisposable
 
     private async Task ScheduleReconnectAsync()
     {
-        if (_reconnectAttempts >= _config.MaxReconnectAttempts)
+        if (_authFailed)
+        {
+            Log("Authentication failed - not reconnecting", LogLevel.Error);
+            return;
+        }
+
+        if (_config.MaxReconnectAttempts > 0 && _reconnectAttempts >= _config.MaxReconnectAttempts)
         {
             Log("Max reconnection attempts reached", LogLevel.Error);
             return;
